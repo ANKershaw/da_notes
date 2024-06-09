@@ -1,7 +1,10 @@
-# Prepare for Visualization
 <!-- TOC -->
 * [Prepare for Visualization](#prepare-for-visualization)
 * [Imports](#imports)
+* [Import packages for data manipulation](#import-packages-for-data-manipulation)
+* [Import packages for data visualization](#import-packages-for-data-visualization)
+* [Import packages for data preprocessing](#import-packages-for-data-preprocessing)
+* [Import packages for data modeling](#import-packages-for-data-modeling)
 * [Basic Data Exploration](#basic-data-exploration)
   * [Load Data](#load-data)
   * [Create a Dataset](#create-a-dataset)
@@ -14,7 +17,9 @@
   * [Show rows with NA values](#show-rows-with-na-values)
   * [Boolean Mask](#boolean-mask)
   * [New Columns](#new-columns)
+  * [Rename Columns](#rename-columns)
   * [Drop Duplicates](#drop-duplicates)
+  * [Drop NA](#drop-na)
   * [Backfill Missing Values](#backfill-missing-values)
   * [Merging or Combining DataFrames](#merging-or-combining-dataframes)
   * [Grouping Data](#grouping-data)
@@ -75,6 +80,9 @@
   * [Select All Instances of Text In PyCharm](#select-all-instances-of-text-in-pycharm)
   * [Pycharm Move to End of Word](#pycharm-move-to-end-of-word)
 <!-- TOC -->
+
+# Prepare for Visualization
+
 # Imports
 
 ```python
@@ -95,7 +103,7 @@ from scipy import stats
 import statsmodels.api as sm
 ```
 
-``python
+```python
 # Import packages for data manipulation
 import pandas as pd
 import numpy as np
@@ -114,7 +122,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay``
-
+```
 # Basic Data Exploration
 
 ## Load Data
@@ -426,6 +434,9 @@ industry_dct = {'Artificial Intelligence':'Artificial intelligence',
                 'FinTech':'Fintech'}
 companies['Industry'] = companies['Industry'].replace(industry_dct)
 ```
+
+## Nan
+Replace any missing values in the dataset with `np.nan`, accessed from the `numpy` library, to simplify the missing values imputation process.
 
 ## Dummie Categories
 ```python
@@ -1178,23 +1189,3 @@ fig.set_ylabel("Residuals")
 plt.show()
 ```
 
-# Miscellanea
-
-## Nan
-Replace any missing values in the dataset with np.nan, accessed from the numpy library, to simplify the missing values imputation process.
-
-## Jupyter Notebook
-To display multiple outputs from one cell:
-`%config InteractiveShell.ast_node_interactivity = 'all'`
-
-## Select All Instances of Text In PyCharm
-command + ctrl + g
-https://www.jetbrains.com/help/pycharm/multicursor.html#multiselection
-
-## Pycharm Move to End of Word
-To move the caret to the next word or the previous word, press 
-⌥ Opt 0→
- or 
-⌥ Opt 0←
-
-By default, PyCharm moves the caret to the end of the current word.
