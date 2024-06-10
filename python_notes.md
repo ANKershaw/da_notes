@@ -1,10 +1,6 @@
 <!-- TOC -->
 * [Prepare for Visualization](#prepare-for-visualization)
 * [Imports](#imports)
-* [Import packages for data manipulation](#import-packages-for-data-manipulation)
-* [Import packages for data visualization](#import-packages-for-data-visualization)
-* [Import packages for data preprocessing](#import-packages-for-data-preprocessing)
-* [Import packages for data modeling](#import-packages-for-data-modeling)
 * [Basic Data Exploration](#basic-data-exploration)
   * [Load Data](#load-data)
   * [Create a Dataset](#create-a-dataset)
@@ -35,6 +31,7 @@
   * [Replace a specific cell content](#replace-a-specific-cell-content)
   * [Use a set to find incorrect categories](#use-a-set-to-find-incorrect-categories)
   * [Replace Data in Dataframe Using Map](#replace-data-in-dataframe-using-map)
+  * [Nan](#nan)
   * [Dummie Categories](#dummie-categories)
   * [Category Codes](#category-codes)
   * [Label Encoding](#label-encoding)
@@ -74,11 +71,6 @@
   * [Pie Chart](#pie-chart)
   * [Heatmap](#heatmap)
   * [Simple Linear Regression](#simple-linear-regression)
-* [Miscellanea](#miscellanea)
-  * [Nan](#nan)
-  * [Jupyter Notebook](#jupyter-notebook)
-  * [Select All Instances of Text In PyCharm](#select-all-instances-of-text-in-pycharm)
-  * [Pycharm Move to End of Word](#pycharm-move-to-end-of-word)
 <!-- TOC -->
 
 # Prepare for Visualization
@@ -792,6 +784,94 @@ of a normal distribution. The resulting graph should be a straight line at 45 de
 import statsmodels.api as sm
 sm.qqplot(residuals, line = 's')
 ```
+
+# Regression Analysis
+
+## ANOVA
+aka Analysis of Variance
+
+* One-way ANOVA: Compares the means of **one continuous dependent variable** based on three or more groups of **one categorical variable**.
+* Two-way ANOVA: Compares the means of **one continuous dependent variable** based on three or more groups of **two categorical variables**.
+
+In order to run ANOVA, we need to create a regression model. To do this, we'll import the statsmodels.api package and 
+the ols() function. Next, we'll create a simple linear regression model where the X variable is color, which we will 
+code as categorical using C(). Then, we'll fit the model to the data, and generate model summary statistics.
+
+```python
+# Import statsmodels and ols function
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+# Construct simple linear regression model, and fit the model
+model = ols(formula = "log_price ~ C(color)", data = diamonds).fit()
+
+# Get summary statistics
+model.summary()
+```
+Based on the model summary table, the color grades' associated beta coefficients all have a p-value of less than 0.05 
+(check the P>|t| column). But we can't be sure if there is a significant price difference between the various color grades. 
+This is where one-way ANOVA comes in.
+
+State H0 and H1 and then:
+
+## One-way ANOVA
+```python
+# Run one-way ANOVA
+sm.stats.anova_lm(model, typ = 2)
+sm.stats.anova_lm(model, typ = 1)
+sm.stats.anova_lm(model, typ = 3)
+```
+```
+	        sum_sq	        df	    F	            PR(>F)
+Intercept	393066.804852	1.0	    399956.684283   0.000000e+00
+C(color)	1041.690290	4.0	    264.987395	    3.609774e-225
+Residual	39148.779822	39835.0	    NaN	            NaN
+```
+
+We use the anova_lm() function from the statsmodels.stats package. As noted previously, the function requires a fitted 
+regression model, and for us to specify the type of ANOVA: 1, 2, or 3. You can review the statsmodels documentation to 
+learn more.
+Since the p-value (column PR(>F)) is very small, we can reject the null hypothesis that the mean of the price is the 
+same for all diamond color grades.
+
+## Two-way ANOVA
+```python
+# Run two-way ANOVA
+sm.stats.anova_lm(model2, typ = 2)
+```
+
+## ANOVA post-hoc test
+Performs a pairwise comparison between all available groups while controlling for the error rate.
+One of the most common ANOVA post hoc tests is the Tukey's HSD (honestly significantly different) test.
+
+```python
+# Import Tukey's HSD function
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+```
+The endog variable specifies which variable is being compared across groups, which is log_price in this case. 
+Then the groups variables indicates which variable holds the groups we're comparing, which is color. alpha tells the 
+function the significance or confidence level, which we'll set to 0.05. We'll aim for the typical 95% confidence level.
+
+```python
+# Run Tukey's HSD post hoc test for one-way ANOVA
+tukey_oneway = pairwise_tukeyhsd(endog = diamonds["log_price"], groups = diamonds["color"], alpha = 0.05)
+
+# Get results (pairwise comparisons)
+tukey_oneway.summary()
+```
+
+```
+group1	group2	meandiff	p-adj	lower	upper	reject
+D	E	-0.0375	0.1171	-0.0802	0.0052	False
+D	F	0.1455	0.001	0.1026	0.1885	True
+D	H	0.3015	0.001	0.2573	0.3458	True
+D	I	0.4061	0.001	0.3568	0.4553	True
+```
+The reject column tells us which null hypotheses we can reject. Based on the values in that column, we can reject each 
+null hypothesis, except when comparing D and E color diamonds. We cannot reject the null hypothesis that the diamond 
+price of D and E color diamonds are the same.
+
+
 
 # Visualization
 
