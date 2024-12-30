@@ -1,18 +1,14 @@
 <!-- TOC -->
 * [Prepare for Visualization](#prepare-for-visualization)
 * [Imports](#imports)
-* [Import packages for data manipulation](#import-packages-for-data-manipulation)
-* [Import packages for data visualization](#import-packages-for-data-visualization)
-* [Import packages for data preprocessing](#import-packages-for-data-preprocessing)
-* [Import packages for data modeling](#import-packages-for-data-modeling)
 * [Basic Data Exploration](#basic-data-exploration)
   * [Load Data](#load-data)
   * [Create a Dataset](#create-a-dataset)
   * [Display the first 10 rows of the data.](#display-the-first-10-rows-of-the-data)
   * [Get the statistical properties of the dataset. Ignores null values](#get-the-statistical-properties-of-the-dataset-ignores-null-values)
   * [Get the shape of the dataset](#get-the-shape-of-the-dataset)
-  * [Get the range of different values in the dataset.](#get-the-range-of-different-values-in-the-dataset)
-  * [Display the data types of the columns.](#display-the-data-types-of-the-columns)
+  * [Get the range of different values in the dataset](#get-the-range-of-different-values-in-the-dataset)
+  * [Display the data types of the columns](#display-the-data-types-of-the-columns)
   * [Sort](#sort)
   * [Show rows with NA values](#show-rows-with-na-values)
   * [Boolean Mask](#boolean-mask)
@@ -33,8 +29,11 @@
   * [Datetime Conversions and Groupings](#datetime-conversions-and-groupings)
   * [Strip Values from Strings](#strip-values-from-strings)
   * [Replace a specific cell content](#replace-a-specific-cell-content)
+  * [Upsample](#upsample)
   * [Use a set to find incorrect categories](#use-a-set-to-find-incorrect-categories)
   * [Replace Data in Dataframe Using Map](#replace-data-in-dataframe-using-map)
+  * [Divide data by category for aggregates](#divide-data-by-category-for-aggregates)
+  * [Nan](#nan)
   * [Dummie Categories](#dummie-categories)
   * [Category Codes](#category-codes)
   * [Label Encoding](#label-encoding)
@@ -53,6 +52,7 @@
   * [Mean](#mean)
   * [Quantile](#quantile)
   * [Interquartile Range - IQR and Outliers](#interquartile-range---iqr-and-outliers)
+  * [Correlation matrix](#correlation-matrix)
   * [Standard Deviation](#standard-deviation)
   * [Empirical rule](#empirical-rule)
   * [Sample](#sample)
@@ -62,6 +62,8 @@
   * [One-sample t-test](#one-sample-t-test)
   * [Two-sample t-test, independent](#two-sample-t-test-independent)
   * [Quantile-Quantile plot](#quantile-quantile-plot)
+  * [Chi-squared test for goodness of fit](#chi-squared-test-for-goodness-of-fit)
+  * [Chi-squared test for independence](#chi-squared-test-for-independence)
 * [Visualization](#visualization)
   * [Size](#size)
   * [Labels](#labels)
@@ -74,11 +76,6 @@
   * [Pie Chart](#pie-chart)
   * [Heatmap](#heatmap)
   * [Simple Linear Regression](#simple-linear-regression)
-* [Miscellanea](#miscellanea)
-  * [Nan](#nan)
-  * [Jupyter Notebook](#jupyter-notebook)
-  * [Select All Instances of Text In PyCharm](#select-all-instances-of-text-in-pycharm)
-  * [Pycharm Move to End of Word](#pycharm-move-to-end-of-word)
 <!-- TOC -->
 
 # Prepare for Visualization
@@ -165,10 +162,10 @@ Name: OVERALL_LI, dtype: float64
 ## Get the shape of the dataset
 `df_companies.shape`
 
-## Get the range of different values in the dataset.
+## Get the range of different values in the dataset
 `df_companies.info()`
 
-## Display the data types of the columns.
+## Display the data types of the columns
 `companies.dtypes`
 
 ## Sort
@@ -363,7 +360,7 @@ companies_2021.insert(3,'Week Joined',companies_2021['Date Joined'].dt.strftime(
 # Aggregate by counting companies that joined per week of 2021.
 # Save the resulting DataFrame in a new variable.
 companies_by_week_2021 = companies_2021.groupby(by="Week Joined")["Company"].count().reset_index().rename(columns={"Company":"Company Count"})
-
+data_upsampled[["verified_status", "video_transcription_text"]].groupby(by="verified_status")[["video_transcription_text"]].agg(func=lambda array: np.mean([len(text) for text in array]))
 
 # Add `Quarter Joined` column to `companies_2021`.
 companies_2020_2021["Quarter Joined"] = companies_2020_2021["Date Joined"].dt.to_period('Q').dt.strftime('%Y-Q%q')
@@ -402,6 +399,15 @@ print(companies[companies['Years To Unicorn'] < 0]['Company'].values)
 # Replacing the Year Founded for InVision with 2011 (which was determined from an internet search)
 companies.loc[companies['Company'] == 'InVision', 'Year Founded'] = 2011
 ```
+## Upsample
+```python
+# Upsample the minority class (which is "verified")
+data_minority_upsampled = resample(data_minority,
+                                 replace=True,                 # to sample with replacement
+                                 n_samples=len(data_majority), # to match majority class
+                                 random_state=0)               # to create reproducible results
+
+```
 
 ## Use a set to find incorrect categories
 ```python
@@ -433,6 +439,11 @@ industry_dct = {'Artificial Intelligence':'Artificial intelligence',
                 'Data management and analytics':'Data management & analytics',
                 'FinTech':'Fintech'}
 companies['Industry'] = companies['Industry'].replace(industry_dct)
+```
+
+## Divide data by category for aggregates
+```python
+data_upsampled[["verified_status", "video_transcription_text"]].groupby(by="verified_status")[["video_transcription_text"]].agg(func=lambda array: np.mean([len(text) for text in array]))
 ```
 
 ## Nan
@@ -640,6 +651,12 @@ One way of modifying the outlier threshold is by calculating the median value fo
 
 ```
 
+## Correlation matrix
+```python
+# Code a correlation matrix to help determine most correlated variables
+data_upsampled.corr(numeric_only=True)
+```
+
 ## Standard Deviation
 Standard Deviation is the square root of the variance.
 
@@ -791,6 +808,33 @@ of a normal distribution. The resulting graph should be a straight line at 45 de
 ```python
 import statsmodels.api as sm
 sm.qqplot(residuals, line = 's')
+```
+
+## Chi-squared test for goodness of fit
+The 𝛸2 goodness of fit test is used to test if an observed categorical variable follows a particular expected distribution.
+
+The 𝛸2 test for independence is used to test if two categorical variables are independent of each other or not 
+(when samples are drawn at random and you want to make an inference about the whole population).
+
+Both 𝛸2 tests follow the same hypothesis testing steps to determine whether you should reject or fail to reject the null 
+hypothesis to drive decision making, as you have explored elsewhere in this program. 
+
+
+```python
+import scipy.stats as stats
+observations = [650, 570, 420, 480, 510, 380, 490]
+expectations = [500, 500, 500, 500, 500, 500, 500]
+result = stats.chisquare(f_obs=observations, f_exp=expectations)
+result
+```
+
+## Chi-squared test for independence
+```python
+import numpy as np
+import scipy.stats as stats
+observations = np.array([[850, 450],[1300, 900]])
+result = stats.contingency.chi2_contingency(observations, correction=False)
+result
 ```
 
 # Visualization
@@ -1058,6 +1102,17 @@ ax = sns.heatmap(df_by_month_plot, cmap = 'Blues')
 colorbar = ax.collections[0].colorbar
 colorbar.set_ticks([0, 1, 2, 3])
 colorbar.set_ticklabels(['Mild', 'Scattered', 'Heavy', 'Severe'])
+plt.show()
+
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(
+    data_upsampled[["video_duration_sec", "claim_status", "author_ban_status", "video_view_count", 
+                    "video_like_count", "video_share_count", "video_download_count", "video_comment_count", "text_length"]]
+    .corr(numeric_only=True), 
+    annot=True, 
+    cmap="crest")
+plt.title("Heatmap of the dataset")
 plt.show()
 ```
 
